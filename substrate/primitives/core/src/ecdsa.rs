@@ -25,10 +25,13 @@ use crate::crypto::{
 #[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 #[cfg(not(feature = "std"))]
-use k256::ecdsa::{SigningKey as SecretKey, VerifyingKey};
+use k256::ecdsa::{
+	signature::hazmat::PrehashVerifier, Signature as EcdsaSignature, SigningKey as SecretKey,
+	VerifyingKey,
+};
 #[cfg(feature = "std")]
 use secp256k1::{
-	ecdsa::{RecoverableSignature, RecoveryId},
+	ecdsa::{RecoverableSignature, RecoveryId, Signature as EcdsaSignature},
 	Message, PublicKey, SecretKey, SECP256K1,
 };
 
@@ -272,9 +275,41 @@ impl Pair {
 	/// Verify a signature on a pre-hashed message. Return `true` if the signature is valid
 	/// and thus matches the given `public` key.
 	pub fn verify_prehashed(sig: &Signature, message: &[u8; 32], public: &Public) -> bool {
-		match sig.recover_prehashed(message) {
-			Some(actual) => actual == *public,
-			None => false,
+		if sig.0[64] != 0 {
+			return match sig.recover_prehashed(message) {
+				Some(actual) => actual == *public,
+				None => false,
+			}
+		}
+
+		#[cfg(feature = "std")]
+		{
+			let sig = match EcdsaSignature::from_compact(&sig.0[..64]) {
+				Ok(v) => v,
+				Err(_) => return false,
+			};
+			let msg = match Message::from_digest_slice(message) {
+				Ok(v) => v,
+				Err(_) => return false,
+			};
+			let public = match PublicKey::from_slice(public) {
+				Ok(v) => v,
+				Err(_) => return false,
+			};
+			sig.verify(&msg, &public).is_ok()
+		}
+
+		#[cfg(not(feature = "std"))]
+		{
+			let sig = match EcdsaSignature::from_bytes((&sig.0[..64]).into()) {
+				Ok(v) => v,
+				Err(_) => return false,
+			};
+			let public = match VerifyingKey::from_sec1_bytes(public) {
+				Ok(v) => v,
+				Err(_) => return false,
+			};
+			public.verify_prehash(message, &sig).is_ok()
 		}
 	}
 
