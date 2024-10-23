@@ -56,6 +56,7 @@ pub use impl_serde::serialize as bytes;
 pub use sp_crypto_hashing::{self as hashing, *};
 
 pub mod const_hex2array;
+mod const_uint;
 pub mod crypto;
 pub mod hexdisplay;
 pub use paste;
@@ -104,6 +105,7 @@ pub use bounded_collections::{
 	parameter_types, ConstBool, ConstI128, ConstI16, ConstI32, ConstI64, ConstI8, ConstU128,
 	ConstU16, ConstU32, ConstU64, ConstU8, Get, GetDefault, TryCollect, TypedGet,
 };
+pub use const_uint::ConstUint;
 pub use sp_storage as storage;
 
 #[doc(hidden)]

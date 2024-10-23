@@ -45,7 +45,7 @@ use sp_core::{self, storage::StateVersion, Hasher, RuntimeDebug, TypeId, U256};
 #[doc(hidden)]
 pub use sp_core::{
 	parameter_types, ConstBool, ConstI128, ConstI16, ConstI32, ConstI64, ConstI8, ConstU128,
-	ConstU16, ConstU32, ConstU64, ConstU8, Get, GetDefault, TryCollect, TypedGet,
+	ConstU16, ConstU32, ConstU64, ConstU8, ConstUint, Get, GetDefault, TryCollect, TypedGet,
 };
 #[cfg(feature = "std")]
 use std::fmt::Display;
